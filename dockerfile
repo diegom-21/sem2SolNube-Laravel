@@ -22,8 +22,9 @@ COPY . /var/www/html
 WORKDIR /var/www/html
 
 # Configura permisos adecuados
-RUN chown -R www-data:www-data /var/www/html \
-    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/public
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
 
 # Instala dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
