@@ -1,8 +1,9 @@
-# Usa una imagen oficial de PHP con extensiones necesarias
+# Usa una imagen oficial de PHP con FPM y Composer
 FROM php:8.1-fpm
 
-# Instala dependencias
+# Instala dependencias del sistema y extensiones necesarias
 RUN apt-get update && apt-get install -y \
+    libpq-dev \
     libpng-dev \
     libjpeg-dev \
     libfreetype6-dev \
@@ -11,23 +12,30 @@ RUN apt-get update && apt-get install -y \
     git \
     curl \
     libonig-dev \
+    libzip-dev \
     && docker-php-ext-configure gd \
-    && docker-php-ext-install gd pdo pdo_mysql mbstring
+    && docker-php-ext-install gd pdo pdo_pgsql pdo_mysql mbstring fileinfo bcmath zip
 
 # Instala Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copia los archivos del proyecto
+# Configura el directorio de trabajo
 WORKDIR /var/www
-COPY . /var/www
 
-# Instala las dependencias de Laravel
+# Copia los archivos del proyecto
+COPY . .
+
+# Instala dependencias de Laravel
 RUN composer install --no-dev --optimize-autoloader
 
-# Configura permisos
+# Genera la clave de la aplicación
+RUN php artisan key:generate
+
+# Configura permisos adecuados
 RUN chmod -R 777 storage bootstrap/cache
 
 # Expone el puerto 9000
 EXPOSE 9000
 
-CMD ["php", "artisan", "serve", "--host=0.0.0.0", "--port=9000"]
+# Comando de inicio para PHP-FPM
+CMD ["php-fpm"]
