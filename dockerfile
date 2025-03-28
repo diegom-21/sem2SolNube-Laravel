@@ -18,9 +18,12 @@ WORKDIR /var/www/html
 # Copia los archivos del proyecto
 COPY . .
 
-# Asigna los permisos correctos para Laravel
+# Ajusta permisos antes de instalar dependencias
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+
+# Limpia caché de Composer antes de instalar dependencias
+RUN composer clear-cache
 
 # Instala las dependencias de Composer optimizando para producción
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
