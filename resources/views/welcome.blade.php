@@ -35,7 +35,7 @@
 </head>
 <body>
 
-    <h1>Diego</h1>
+    <h1>Laravel en Render - Diego Moreno Nanfuñay</h1>
     
     <img src="{{ asset('images/alianzalogo.png') }}">
     
