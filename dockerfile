@@ -1,23 +1,25 @@
-# Usar una imagen oficial de PHP con Apache
+# Imagen base de PHP con Apache
 FROM php:8.2-apache
 
-# Instalar extensiones necesarias para Laravel
+# Instalar extensiones necesarias
 RUN docker-php-ext-install pdo pdo_mysql
 
 # Habilitar mod_rewrite para Laravel
 RUN a2enmod rewrite
 
-# Establecer el directorio de trabajo
-WORKDIR /var/www/html
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
 
-# Copiar todos los archivos del proyecto al contenedor
-COPY . .
+# Copiar el proyecto entero
+COPY . /var/www/html/
 
-# Ajustar permisos para almacenamiento y caché
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
+# Definir el directorio de trabajo en `public/`
+WORKDIR /var/www/html/public
+
+# Cambiar permisos de almacenamiento y caché
+RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
 # Exponer el puerto 80
 EXPOSE 80
 
-# Comando de inicio del contenedor
+# Comando para iniciar Apache
 CMD ["apache2-foreground"]
