@@ -18,20 +18,21 @@ WORKDIR /var/www/html
 # Copia los archivos del proyecto
 COPY . .
 
+# Si no existe el .env, crea uno a partir del .env.example
+RUN cp .env.example .env || true
+
 # Ajusta permisos antes de instalar dependencias
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Limpia caché de Composer antes de instalar dependencias
-RUN composer clear-cache
-
-# Instala las dependencias de Composer optimizando para producción
+# Instala dependencias con Composer
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-# Genera la clave de la aplicación
-RUN php artisan key:generate
+# Genera la clave de la aplicación SOLO SI existe .env
+RUN if [ -f ".env" ]; then php artisan key:generate; fi
 
 # Limpia cachés y optimiza la aplicación
+RUN php artisan config:clear && php artisan cache:clear
 RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
 
 # Expone el puerto 80
