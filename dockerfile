@@ -18,22 +18,25 @@ WORKDIR /var/www/html
 # Copia los archivos del proyecto
 COPY . .
 
-# Si no existe el .env, crea uno a partir del .env.example
-RUN cp .env.example .env || true
+# Si el archivo .env no existe, crea uno desde .env.example
+RUN if [ ! -f ".env" ]; then cp .env.example .env; fi
 
-# Ajusta permisos antes de instalar dependencias
+# Ajusta permisos para evitar errores en storage y bootstrap/cache
 RUN chown -R www-data:www-data /var/www/html \
     && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# Instala dependencias con Composer
+# Instala dependencias de Laravel
 RUN composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
 
-# Genera la clave de la aplicación SOLO SI existe .env
-RUN if [ -f ".env" ]; then php artisan key:generate; fi
+# Genera la clave de la aplicación si no está definida
+RUN if [ -z "$APP_KEY" ]; then php artisan key:generate; fi
 
-# Limpia cachés y optimiza la aplicación
-RUN php artisan config:clear && php artisan cache:clear
-RUN php artisan config:cache && php artisan route:cache && php artisan view:cache
+# Limpia cachés y optimiza Laravel
+RUN php artisan config:clear && \
+    php artisan cache:clear && \
+    php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache
 
 # Expone el puerto 80
 EXPOSE 80
